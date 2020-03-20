@@ -77,12 +77,6 @@ struct rb_tree{
  */
 void rb_tree_init(struct rb_tree * tree, rb_cmp_f cmp_value, rb_apply_f free_value);
 
-/**
- * Applies the functin to all values in the red black tree in order
- * @param tree the tree
- * @param apply a function to apply to all values
- */
-void rb_tree_apply(struct rb_tree * tree, rb_apply_f apply);
 
 /**
  * Checks whether the tree is empty
@@ -90,6 +84,13 @@ void rb_tree_apply(struct rb_tree * tree, rb_apply_f apply);
  * @return true if the tree is empty, false otherwise
  */
 bool rb_tree_is_empty(const struct rb_tree * tree);
+
+/**
+ * Applies the functin to all values in the red black tree in order
+ * @param tree the tree
+ * @param apply a function to apply to all values
+ */
+void rb_tree_apply(struct rb_tree * tree, rb_apply_f apply);
 
 /**
  * Inserts a value in the red black tree

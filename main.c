@@ -16,6 +16,20 @@
  *
  */
 
+#include "rb_tree.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+static int compare(void * first, void * second){
+  return strcmp((const char *)first, (const char *)second); 
+}
+
+static void print(void * value){
+  puts((const char *)value);
+}
+
 /**
  * The main application entry point
  * Tests the relevant algorithms for correctness
@@ -24,5 +38,22 @@
  * @return the exit code
  */
 int main(int arg_count, const char ** args){
+
+  const char * values[] = {"and", "or", "begin", "book", "test", "none", "factor", "not", "original", "zulu"};
+
+  struct rb_tree tree;
+
+  rb_tree_init(&tree, &compare, NULL);
+
+  for(int i = 0; i < 10; ++i){
+    rb_tree_insert(&tree, (void *)values[i]);
+  }
+
+  puts("values in tree:");
+  rb_tree_apply(&tree, &print);
+  puts("");
+  
+  rb_tree_free(&tree);
+
   return 0;
 }
