@@ -82,6 +82,52 @@ struct rb_tree{
  */
 void rb_tree_init(struct rb_tree * tree, rb_cmp_f cmp_value, rb_apply_f free_value);
 
+/**
+ * Finds the node associated to the specified value in the tree
+ * @param tree the tree
+ * @param the value to find
+ * @return the associated node or NULL if no such node exists
+ */
+struct rb_node * rb_tree_find(const struct rb_tree * tree, void * value);
+
+/**
+ * Returns the first in the tree, or NULL if the tree is empty
+ * @param tree the tree
+ * @return a pointer to the node
+ */
+struct rb_node * rb_tree_get_begin(const struct rb_tree * tree);
+
+/**
+ * Returns the last in the tree, or NULL if the tree is empty
+ * @param tree the tree
+ * @return a pointer to the node
+ */
+struct rb_node * rb_tree_get_end(const struct rb_tree * tree);
+
+/**
+ * Returns the next node in the tree, or NULL if the tree is empty
+ * @param tree the tree
+ * @param node the current node
+ * @return a pointer to the node
+ */
+struct rb_node * rb_tree_get_next(const struct rb_tree * tree, struct rb_node * node);
+
+
+/**
+ * Returns the previous node in the tree, or NULL if the tree is empty
+ * @param tree the tree
+ * @param node the current node
+ * @return a pointer to the node
+ */
+struct rb_node * rb_tree_get_previous(const struct rb_tree * tree, struct rb_node * node);
+
+/**
+ * Returns the value associated to the node
+ * @param tree the tree
+ * @param node the node
+ * @return the value
+ */
+void * rb_tree_get_value(const struct rb_tree * tree, struct rb_node * node);
 
 /**
  * Checks whether the tree is empty
@@ -91,7 +137,7 @@ void rb_tree_init(struct rb_tree * tree, rb_cmp_f cmp_value, rb_apply_f free_val
 bool rb_tree_is_empty(const struct rb_tree * tree);
 
 /**
- * Applies the functin to all values in the red black tree in order
+ * Applies the function to all values in the red black tree in order
  * @param tree the tree
  * @param apply a function to apply to all values
  */
@@ -106,12 +152,19 @@ void rb_tree_apply(struct rb_tree * tree, rb_apply_f apply);
 bool rb_tree_insert(struct rb_tree * tree, void * value);
 
 /**
+ * Deletes a node from the tree
+ * @param tree the tree
+ * @param node the node to delete
+ */
+void rb_tree_delete(struct rb_tree * tree, struct rb_node * node);
+
+/**
  * Deletes a value from the red black tree
  * @param tree the tree
  * @param value the value to delete
  * @return true if the value was found and deleted, false otherwise
  */
-bool rb_tree_delete(struct rb_tree * tree, void * value);
+bool rb_tree_find_and_delete(struct rb_tree * tree, void * value);
 
 /**
  * Frees all data associated to the red black tree

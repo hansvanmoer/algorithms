@@ -59,10 +59,10 @@ struct rb_node{
  */
 static void default_free_value(void * value){};
 
-
-/**
+/*
  * Assertion functions for testing purposes
  */
+
 static int assert_node(struct rb_tree * tree, struct rb_node * node){
   if(node == tree->nil){
     return 1;
@@ -85,12 +85,16 @@ static void assert_tree(struct rb_tree * tree){
   assert_node(tree, tree->root);
 }
 
+/*
+ * Helper methods
+ */
+
 /**
  * Returns the minimum node in this subtree
  * @param the root of the subtree or NIL
  * @return the minimum node or NIL if node is NIL
  */
-static struct rb_node * get_min(struct rb_tree * tree, struct rb_node * node){
+static struct rb_node * get_min(const struct rb_tree * tree, struct rb_node * node){
   assert(tree != NULL);
   assert(node != NULL);
  
@@ -105,66 +109,22 @@ static struct rb_node * get_min(struct rb_tree * tree, struct rb_node * node){
 }
 
 /**
- * Gets the in-order successor of the supplied node
- * @param node a node that is not NIL
- * @return the successor
+ * Returns the maximum node in this subtree
+ * @param the root of the subtree or NIL
+ * @return the maximum node or NIL if node is NIL
  */
-static struct rb_node * get_next(struct rb_tree * tree, struct rb_node * node){
+static struct rb_node * get_max(const struct rb_tree * tree, struct rb_node * node){
   assert(tree != NULL);
   assert(node != NULL);
-  assert(node != tree->nil);
-  
-  if(node->right == tree->nil){
-    while(node == node->parent->right){
-      node = node->parent;
+ 
+  if(node == tree->nil){
+    return tree->nil;
+  }else{
+    while(node->right != tree->nil){
+      node = node->right;
     }
-    return node->parent;
-  }else{
-    return get_min(tree, node->right);
+    return node;
   }
-}
-
-/**
- * Creates a node containing the supplied values and sensible defaults
- * @param value the value of the new node
- * @return a new node
- */
-static struct rb_node * create_node(struct rb_tree * tree, void * value){
-  assert(tree != NULL);
-
-  struct rb_node * node = malloc_checked(sizeof(struct rb_node));
-  node->value = value;
-  node->red = true;
-  node->left = tree->nil;
-  node->right = tree->nil;
-  return node;
-}
-
-
-void rb_tree_init(struct rb_tree * tree, rb_cmp_f cmp_value, rb_apply_f free_value){
-  assert(tree != NULL);
-  assert(cmp_value != NULL);
-
-  struct rb_node * nil = malloc_checked(sizeof(struct rb_node));
-  nil->value = NULL;
-  nil->red = false;
-  nil->left = NULL;
-  nil->right = NULL;
-  
-  tree->root = nil;
-  tree->nil = nil;
-  tree->cmp_value = cmp_value;
-  if(free_value == NULL){
-    tree->free_value = default_free_value;
-  }else{
-    tree->free_value = free_value;
-  }
-}
-
-bool rb_tree_is_empty(const struct rb_tree * tree){
-  assert(tree !=NULL);
-  
-  return tree->root != tree->nil;
 }
 
 /**
@@ -236,6 +196,140 @@ static void rotate_right(struct rb_tree * tree, struct rb_node * pivot){
 }
 
 /**
+ * Creates a node containing the supplied values and sensible defaults
+ * @param value the value of the new node
+ * @return a new node
+ */
+static struct rb_node * create_node(struct rb_tree * tree, void * value){
+  assert(tree != NULL);
+
+  struct rb_node * node = malloc_checked(sizeof(struct rb_node));
+  node->value = value;
+  node->red = true;
+  node->left = tree->nil;
+  node->right = tree->nil;
+  return node;
+}
+
+/*
+ * Initialization
+ */
+
+void rb_tree_init(struct rb_tree * tree, rb_cmp_f cmp_value, rb_apply_f free_value){
+  assert(tree != NULL);
+  assert(cmp_value != NULL);
+
+  struct rb_node * nil = malloc_checked(sizeof(struct rb_node));
+  nil->value = NULL;
+  nil->red = false;
+  nil->left = NULL;
+  nil->right = NULL;
+  
+  tree->root = nil;
+  tree->nil = nil;
+  tree->cmp_value = cmp_value;
+  if(free_value == NULL){
+    tree->free_value = default_free_value;
+  }else{
+    tree->free_value = free_value;
+  }
+}
+
+/*
+ * Finding nodes and navigating through the tree
+ */
+
+struct rb_node * rb_tree_find(const struct rb_tree * tree, void * value){
+  assert(tree != NULL);
+  
+  struct rb_node * node = tree->root;
+  while(node != tree->nil){
+    int cmp = (*tree->cmp_value)(value, node->value);
+    if(cmp < 0){
+      node = node->left;
+    }else if(cmp > 0){
+      node = node->right;
+    }else{
+      break;
+    }
+  }
+  return node;
+}
+
+struct rb_node * rb_tree_get_begin(const struct rb_tree * tree){
+  assert(tree != NULL);
+  return get_min(tree, tree->root);
+}
+
+struct rb_node * rb_tree_get_end(const struct rb_tree * tree){
+  assert(tree != NULL);
+  return get_max(tree, tree->root);
+}
+
+
+struct rb_node * rb_tree_next(const struct rb_tree * tree, struct rb_node * node){
+  assert(tree != NULL);
+  assert(node != NULL);
+  assert(node != tree->nil);
+  
+  if(node->right == tree->nil){
+    while(node == node->parent->right){
+      node = node->parent;
+    }
+    return node->parent;
+  }else{
+    return get_min(tree, node->right);
+  }
+}
+
+struct rb_node * rb_tree_previous(const struct rb_tree * tree, struct rb_node * node){
+  assert(tree != NULL);
+  assert(node != NULL);
+  assert(node != tree->nil);
+  
+  if(node->left == tree->nil){
+    while(node == node->parent->left){
+      node = node->parent;
+    }
+    return node->parent;
+  }else{
+    return get_max(tree, node->left);
+  }
+}
+
+void * rb_tree_get_value(const struct rb_tree * tree, struct rb_node * node){
+  assert(tree != NULL);
+  assert(node != NULL);
+  assert(node != tree->nil);
+  return node->value;
+}
+
+void rb_tree_apply(struct rb_tree * tree, rb_apply_f apply){
+  assert(tree != NULL);
+  assert(apply != NULL);
+
+  struct rb_node * node = get_min(tree, tree->root);
+  while(node != tree->nil){
+    (*apply)(node->value);
+    node = rb_tree_next(tree, node);
+  }
+}
+
+/*
+ * Inspection
+ */
+
+bool rb_tree_is_empty(const struct rb_tree * tree){
+  assert(tree !=NULL);
+  
+  return tree->root != tree->nil;
+}
+
+/*
+ * Insertion
+ */
+
+/**
  * Fixes the tree after an insert
  */
 static void fix_after_insert(struct rb_tree * tree, struct rb_node * node){
@@ -289,6 +383,11 @@ bool rb_tree_insert(struct rb_tree * tree, void * value){
     node->parent = tree->nil;
     node->red = false;
     tree->root = node;
+
+#ifndef NDEBUG
+    assert_tree(tree);
+#endif
+
     return false;
   }else{
     struct rb_node * pos = tree->root;
@@ -300,6 +399,11 @@ bool rb_tree_insert(struct rb_tree * tree, void * value){
 	  node->parent = pos;
 	  pos->left = node;
 	  fix_after_insert(tree, node);
+
+#ifndef NDEBUG
+	  assert_tree(tree);
+#endif
+
 	  return false;
 	}else{
 	  pos = pos->left;
@@ -310,6 +414,11 @@ bool rb_tree_insert(struct rb_tree * tree, void * value){
 	  node->parent = pos;
 	  pos->right = node;
 	  fix_after_insert(tree, node);
+
+#ifndef NDEBUG
+	  assert_tree(tree);
+#endif
+	  
 	  return false;
 	}else{
 	  pos = pos->right;
@@ -323,28 +432,9 @@ bool rb_tree_insert(struct rb_tree * tree, void * value){
   }
 }
 
-/**
- * Finds a value in the tree
- * @param tree the tree
- * @param value the value to look for
- * @return the node containing the supplied value
+/*
+ * Deletion
  */
-static struct rb_node * find(struct rb_tree * tree, void * value){
-  assert(tree != NULL);
-  
-  struct rb_node * node = tree->root;
-  while(node != tree->nil){
-    int cmp = (*tree->cmp_value)(value, node->value);
-    if(cmp < 0){
-      node = node->left;
-    }else if(cmp > 0){
-      node = node->right;
-    }else{
-      break;
-    }
-  }
-  return node;
-}
 
 static void replace_node(struct rb_tree * tree, struct rb_node * node, struct rb_node * repl){
   assert(tree != NULL);
@@ -421,7 +511,7 @@ static void fix_after_delete(struct rb_tree * tree, struct rb_node * node){
   node->red = false;
 }
 
-static void delete_node(struct rb_tree * tree, struct rb_node * node){
+void rb_tree_delete(struct rb_tree * tree, struct rb_node * node){
   assert(tree != NULL);
   assert(node != NULL);
   assert(node != tree->nil);
@@ -433,6 +523,11 @@ static void delete_node(struct rb_tree * tree, struct rb_node * node){
     }
     (*tree->free_value)(node->value);
     free(node);
+
+#ifndef NDEBUG
+    assert_tree(tree);
+#endif
+
   }else if(node->right == tree->nil){
     replace_node(tree, node, node->left);
     if(!node->red){
@@ -440,37 +535,35 @@ static void delete_node(struct rb_tree * tree, struct rb_node * node){
     }
     (*tree->free_value)(node->value);
     free(node);
+
+#ifndef NDEBUG
+    assert_tree(tree);
+#endif
+
   }else{
     struct rb_node * repl = get_min(tree, node->right);
     void * value = node->value;
     node->value = repl->value;
     repl->value = value;
-    delete_node(tree, repl);
+    rb_tree_delete(tree, repl);
   }
 }
 
-bool rb_tree_delete(struct rb_tree * tree, void * value){
+bool rb_tree_find_and_delete(struct rb_tree * tree, void * value){
   assert(tree != NULL);
 
-  struct rb_node * node = find(tree, value);
+  struct rb_node * node = rb_tree_find(tree, value);
   if(node == tree->nil){
     return false;
   }else{
-    delete_node(tree, node);
+    rb_tree_delete(tree, node);
     return true;
   }
 }
 
-void rb_tree_apply(struct rb_tree * tree, rb_apply_f apply){
-  assert(tree != NULL);
-  assert(apply != NULL);
-
-  struct rb_node * node = get_min(tree, tree->root);
-  while(node != tree->nil){
-    (*apply)(node->value);
-    node = get_next(tree, node);
-  }
-}
+/*
+ * Freeing
+ */
 
 void rb_tree_free(struct rb_tree * tree){
   assert(tree != NULL);
