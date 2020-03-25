@@ -39,7 +39,7 @@ static void print(void * value){
  */
 int main(int arg_count, const char ** args){
 
-  const char * values[] = {"and", "or", "begin", "book", "test", "none", "factor", "not", "original", "zulu"};
+  const char * values[] = {"alpha", "x-ray", "coca", "book", "terra", "none", "factor", "not", "original", "zulu"};
 
   struct rb_tree tree;
 
@@ -47,11 +47,17 @@ int main(int arg_count, const char ** args){
 
   for(int i = 0; i < 10; ++i){
     rb_tree_insert(&tree, (void *)values[i]);
+    puts("values in tree:");
+    rb_tree_apply(&tree, &print);
+    puts("");
   }
 
-  puts("values in tree:");
-  rb_tree_apply(&tree, &print);
-  puts("");
+
+  for(int i = 5; i < 15; ++i){
+    printf("deleting value '%s'\n", values[i % 10]);
+    rb_tree_find_and_delete(&tree, (void *)values[i % 10]);
+    rb_tree_apply(&tree, &print);
+  }
   
   rb_tree_free(&tree);
 
