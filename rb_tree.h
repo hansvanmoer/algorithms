@@ -59,6 +59,11 @@ struct rb_tree{
   struct rb_node * root;
 
   /**
+   * The sentinel node
+   */
+  struct rb_node * nil;
+  
+  /**
    * The comparison function
    */
   rb_cmp_f cmp_value;
@@ -99,6 +104,14 @@ void rb_tree_apply(struct rb_tree * tree, rb_apply_f apply);
  * @return true if the value replaces an existing value, false otherwise
  */
 bool rb_tree_insert(struct rb_tree * tree, void * value);
+
+/**
+ * Deletes a value from the red black tree
+ * @param tree the tree
+ * @param value the value to delete
+ * @return true if the value was found and deleted, false otherwise
+ */
+bool rb_tree_delete(struct rb_tree * tree, void * value);
 
 /**
  * Frees all data associated to the red black tree
