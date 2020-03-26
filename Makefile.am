@@ -4,4 +4,4 @@
 
 noinst_PROGRAMS=algorithms
 
-algorithms_SOURCES=main.c memory.c rb_tree.c
+algorithms_SOURCES=main.c memory.c ordered_map.c rb_tree.c
