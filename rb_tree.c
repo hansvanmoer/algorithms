@@ -57,7 +57,7 @@ struct rb_node{
 /**
  * The default free function (does nothing)
  */
-static void default_free_value(void * value){};
+static void default_free_value(struct rb_tree * tree, void * value){};
 
 /*
  * Assertion functions for testing purposes
@@ -215,7 +215,7 @@ static struct rb_node * create_node(struct rb_tree * tree, void * value){
  * Initialization
  */
 
-void rb_tree_init(struct rb_tree * tree, rb_cmp_f cmp_value, rb_apply_f free_value){
+void rb_tree_init(struct rb_tree * tree, rb_cmp_f cmp_value, rb_apply_f free_value, void * state){
   assert(tree != NULL);
   assert(cmp_value != NULL);
 
@@ -233,6 +233,7 @@ void rb_tree_init(struct rb_tree * tree, rb_cmp_f cmp_value, rb_apply_f free_val
   }else{
     tree->free_value = free_value;
   }
+  tree->state = state;
 }
 
 /*
@@ -244,7 +245,7 @@ struct rb_node * rb_tree_find(const struct rb_tree * tree, void * value){
   
   struct rb_node * node = tree->root;
   while(node != tree->nil){
-    int cmp = (*tree->cmp_value)(value, node->value);
+    int cmp = (*tree->cmp_value)(tree, value, node->value);
     if(cmp < 0){
       node = node->left;
     }else if(cmp > 0){
@@ -310,7 +311,7 @@ void rb_tree_apply(struct rb_tree * tree, rb_apply_f apply){
 
   struct rb_node * node = get_min(tree, tree->root);
   while(node != tree->nil){
-    (*apply)(node->value);
+    (*apply)(tree, node->value);
     node = rb_tree_next(tree, node);
   }
 }
@@ -392,7 +393,7 @@ bool rb_tree_insert(struct rb_tree * tree, void * value){
   }else{
     struct rb_node * pos = tree->root;
     while(true){
-      int cmp = (*tree->cmp_value)(value, pos->value);
+      int cmp = (*tree->cmp_value)(tree, value, pos->value);
       if(cmp < 0){
 	if(pos->left == tree->nil){
 	  struct rb_node * node = create_node(tree, value);
@@ -424,7 +425,7 @@ bool rb_tree_insert(struct rb_tree * tree, void * value){
 	  pos = pos->right;
 	}
       }else{
-	(*tree->free_value)(pos->value);
+	(*tree->free_value)(tree, pos->value);
 	pos->value = value;
 	return true;
       }
@@ -521,7 +522,7 @@ void rb_tree_delete(struct rb_tree * tree, struct rb_node * node){
     if(!node->red){
       fix_after_delete(tree, node->right);
     }
-    (*tree->free_value)(node->value);
+    (*tree->free_value)(tree, node->value);
     free(node);
 
 #ifndef NDEBUG
@@ -533,7 +534,7 @@ void rb_tree_delete(struct rb_tree * tree, struct rb_node * node){
     if(!node->red){
       fix_after_delete(tree, node->left);
     }
-    (*tree->free_value)(node->value);
+    (*tree->free_value)(tree, node->value);
     free(node);
 
 #ifndef NDEBUG
@@ -580,12 +581,11 @@ void rb_tree_free(struct rb_tree * tree){
       pos->right = tree->nil;
     }else{
       next = pos->parent;
-      (*tree->free_value)(pos->value);
+      (*tree->free_value)(tree, pos->value);
       free(pos);
     }
     pos = next;
   }
-
   free(tree->nil);
 }
 

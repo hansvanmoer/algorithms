@@ -31,22 +31,24 @@
  */
 struct rb_node;
 
+struct rb_tree;
+
 /**
  * A function pointer type for the comparison function used
  * in the red black tree.
- * Signature: int f(void * first, void * second)
+ * Signature: int fn(struct rb_tree *, void * first, void * second)
  * Returns an int smaller than 1 if first < second
  * Returns 0 if first == second
  * Returns an int greater than 1 if first > second
  */
-typedef int (*rb_cmp_f)(void *, void *);
+typedef int (*rb_cmp_f)(const struct rb_tree *, void *, void *);
 
 /**
  * A function pointer type for a function to apply to values
  * in the red black tree.
- * Signature: void f(void * key_or_val)
+ * Signature: void f(struct rb_tree *, void * key_or_val)
  */
-typedef void (*rb_apply_f)(void *);
+typedef void (*rb_apply_f)(struct rb_tree *, void *);
 
 /**
  * A red black tree
@@ -72,6 +74,12 @@ struct rb_tree{
    * The free function for values
    */
   rb_apply_f free_value;
+
+  /**
+   * Extra state for the tree
+   */
+  void * state;
+  
 };
 
 /**
@@ -79,8 +87,9 @@ struct rb_tree{
  * @param a pointer to the tree
  * @param cmp_value a pojnter to a comparison function
  * @param free_value a pointer to a function to free the values or NULL if the values should not be freed
+ * @param free_state a pointer to state data used in the free function
  */
-void rb_tree_init(struct rb_tree * tree, rb_cmp_f cmp_value, rb_apply_f free_value);
+void rb_tree_init(struct rb_tree * tree, rb_cmp_f cmp_value, rb_apply_f free_value, void * state);
 
 /**
  * Finds the node associated to the specified value in the tree
